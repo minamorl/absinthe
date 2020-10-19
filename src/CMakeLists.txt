@@ -1,4 +1,6 @@
-set(HEADER_LIST "${MyProject_SOURCE_DIR}/include/lib.h")
+set(HEADER_LIST
+    "${MyProject_SOURCE_DIR}/include/lib.h"
+    "${MyProject_SOURCE_DIR}/include/chord.h")
 
 # Make an automatic library - will be static or dynamic based on user setting
 add_library(mylib lib.cpp ${HEADER_LIST})
