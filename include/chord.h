@@ -72,7 +72,7 @@ class make_scale_on_tone<Tone, abstract_scale<Interval, Intervals...>>
 public:
     auto operator()() {
         auto summed_scale_intervals = typename intervals_sum<0, std::tuple<Interval>, Interval, Intervals...>::type{};
-        return std::apply([&](auto... ts){ return std::make_tuple(Tone::value, typename move_tone_forward<Tone, decltype(ts)::value>::type{}...); }, summed_scale_intervals);
+        return std::apply([&](auto... ts){ return std::make_tuple(Tone{}, typename move_tone_forward<Tone, decltype(ts)::value>::type{}...); }, summed_scale_intervals);
     }
 };
 
