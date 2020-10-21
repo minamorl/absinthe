@@ -37,6 +37,9 @@ public:
     using type = tone<(Tone::value + N) % 12>;
 };
 
+template <class Tone, unsigned N>
+using move_tone_forward_t = move_tone_forward<Tone, N>::type;
+
 template<int N>
 class interval : public std::integral_constant<int, N> {};
 
@@ -62,18 +65,49 @@ public:
     using type = std::tuple<ContainerType..., interval<std::tuple_element_t<Index, std::tuple<ContainerType...>>::value + Tail::value>>;
 };
 
+template <size_t Index, class Container, class Head, class... Tail>
+using intervals_sum_t = intervals_sum<Index, Container, Head, Tail...>::type;
+
+template <class Intervals>
+class replace_intervals_to_tones;
+
+template <template<class...> class T, class... Ts>
+class replace_intervals_to_tones<T<Ts...>> {
+public:
+    using type = T<tone<Ts::value>...>;
+};
+
+template <class Tone, class Intervals>
+class move_multiple_tones_forward;
+
+template <class Tone, template<class...> class T, class... Ts>
+class move_multiple_tones_forward<Tone, T<Ts...>> {
+public:
+    using type = T<move_tone_forward_t<Tone, Ts::value>...>;
+};
+
+template <class Head, class Tup>
+class append_target;
+
+template <class Head, template <class...> class Tup, class... Ts>
+class append_target<Head, Tup<Ts...>> {
+public:
+    using type = Tup<Head, Ts...>;
+};
+
+template <class Tup, class Head>
+using append_target_t = append_target<Tup, Head>::type;
+
+template <class Tone, class Intervals>
+using move_multiple_tones_forward_t = move_multiple_tones_forward<Tone, Intervals>::type;
 
 template <class Tone, class AbstractScale>
 class make_scale_on_tone;
 
 template <class Tone, class Interval, class... Intervals>
-class make_scale_on_tone<Tone, abstract_scale<Interval, Intervals...>>
-{
+class make_scale_on_tone<Tone, abstract_scale<Interval, Intervals...>> {
 public:
-    auto operator()() {
-        auto summed_scale_intervals = typename intervals_sum<0, std::tuple<Interval>, Interval, Intervals...>::type{};
-        return std::apply([&](auto... ts){ return std::make_tuple(Tone{}, typename move_tone_forward<Tone, decltype(ts)::value>::type{}...); }, summed_scale_intervals);
-    }
+    using type = append_target_t<Tone, move_multiple_tones_forward_t<Tone, intervals_sum_t<0, std::tuple<Interval>, Interval, Intervals...>>>;
 };
 
 using major_scale = abstract_scale<interval<2>, interval<2>, interval<1>, interval<2>, interval<2>, interval<2>, interval<1>>;
